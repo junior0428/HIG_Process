@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <meta charset="utf-8" />
+  <head>
+    <title>Leaflet 1: Mapa básico en Leaflet</title>
+    <!-- Script de Leaflet -->
+    <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script>
+    <!-- Hoja de estilos de Leaflet -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css"
+    />
+    <!--Establecemos el estilo para la capa con id mapa-->
+    <style>
+      #mapa {
+        width: 100%;
+        height: 600px;
+      }
+    </style>
+    <script type="text/javascript" src="../datos_españa/espana.js"></script>
+    <script
+      type="text/javascript"
+      src="../datos_españa/comunidades.js"
+    ></script>
+    <script type="text/javascript" src="../datos_españa/provincias.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1 style="font-size: 32px; color: #0000ff; text-align: center">
+        IDE Mapa de España
+      </h1>
+      <p style="font-size: 20px; color: #00ffff; text-align: center">
+        Algunas capas desde GeoJson
+      </p>
+    </header>
+    <div id="mapa"></div>
+    <!--Capa en la que va el mapa-->
+    <script>
+      //Comienzo del Script en JavaScript
+      var osmLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
+      //Enlace de OpenStreetMap
+      var osmUrl = "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+      //Ruta de OpenStreetMap
+      var osmAttrib = "&copy; " + osmLink + " Contributors";
+      //Atribuciones de OpenStreetMap
+      var osmMap = L.tileLayer(osmUrl, { attribution: osmAttrib });
+      //Creo la capa con laruta y las atribuciones indicadas,
+      //asigno la capa a la variable osmMap
+      var mimapa = L.map("mapa", {
+        measureControl: true,
+        maxZoom: 20,
+        center: new L.LatLng(40.6513, -4.6786),
+        zoom: 5,
+      });
+      //Creo el mapa en la capa con id mapa, centrado en las coordenadas de la E.P.S.de Ávila y con zoom 15
+      osmMap.addTo(mimapa); //Añado la capa de OpenStreetMap al mapa
+      var capasbase = {
+        "Mapa OpenStreetMap": osmMap,
+      };
+      //Creo la variable capasbase para guardar los mapas que quiero visualizar de base
+      var estilopais = {
+        fillColor: "#ff0000",
+        opacity: 1,
+        color: "#000000",
+        weight: 1,
+        fillOpacity: 0.8,
+      };
+      var estilocomunidades = {
+        fillColor: "#CC6600",
+        opacity: 1,
+        color: "#000000",
+        weight: 1,
+        fillOpacity: 0.8,
+      };
+      //Creo el estilo para la capa pais
+      capa_pais = L.geoJson(espana, { style: estilopais }).addTo(mimapa);
+      //Añado al mapa la capa del mapa de españa con el estilo indicado;
+      var capasadicionales = {
+        España: capa_pais,
+      }; //Preparo las capas adicionales para cargar en el selector de capas
+      L.control.layers(capasbase, capasadicionales).addTo(mimapa);
+      //Añado al m
+    </script>
+    <!--Fin del Script-->
+  </body>
+</html>
