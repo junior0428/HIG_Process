@@ -1,86 +1,167 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
+<head>
   <meta charset="utf-8" />
-  <head>
-    <title>Leaflet 1: Mapa básico en Leaflet</title>
-    <!-- Script de Leaflet -->
-    <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script>
-    <!-- Hoja de estilos de Leaflet -->
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css"
-    />
-    <!--Establecemos el estilo para la capa con id mapa-->
-    <style>
-      #mapa {
-        width: 100%;
-        height: 600px;
+  <title>Tarea 4 HIG: Austria GIS Map</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.3/leaflet.css" />
+
+  <!-- Leaflet Draw CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Arial", sans-serif;
+      background-color: #f9f9f9;
+    }
+    header {
+      text-align: center;
+      background-color: #002366;
+      color: #ffffff;
+      padding: 1em 0;
+    }
+    h1 {
+      margin: 0;
+      font-size: 2em;
+      font-weight: bold;
+    }
+    .container {
+      width: 95%;
+      max-width: 1200px;
+      margin: 1em auto;
+    }
+    #map {
+      width: 100%;
+      height: 600px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Austria GIS Map</h1>
+    <p>Visualizando capas GeoJSON con control de mediciones</p>
+  </header>
+
+  <div class="container">
+    <div id="map"></div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.3/leaflet.js"></script>
+
+  <!-- Leaflet Draw JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+
+  <!-- Librería para cálculos geométricos -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-geometryutil/0.9.3/leaflet.geometryutil.js"></script>
+
+  <!-- Scripts de capas GeoJSON -->
+  <script type="text/javascript" src="../data/austria.js"></script>
+  <script type="text/javascript" src="../data/aust_roads.js"></script>
+  <script type="text/javascript" src="../data/aust_rails.js"></script>
+  <script type="text/javascript" src="../data/aust_waterareas.js"></script>
+  <script type="text/javascript" src="../data/aust_waterlines.js"></script>
+  <script type="text/javascript" src="../data/aust_estaFedera.js"></script>
+
+  <script>
+    /***********************************************
+     * 1. Configuración del mapa y capa base
+     ***********************************************/
+    var osmTileLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> Contributors'
+    });
+
+    var map = L.map("map", {
+      center: [47.621763, 14.594218],
+      zoom: 7,
+      layers: [osmTileLayer]
+    });
+
+    L.control.scale().addTo(map); // Escala del mapa
+
+    /***********************************************
+     * 2. Definición de estilos para cada capa
+     ***********************************************/
+    var countryStyle = { fillColor: "#f7ca4d", color: "#a67c00", weight: 1, fillOpacity: 0.5 };
+    var roadsStyle = { color: "#f80000", weight: 2, opacity: 0.8 };
+    var waterLinesStyle = { color: "#0066cc", weight: 2, opacity: 0.8 };
+    var waterAreasStyle = { fillColor: "#33ccff", color: "#33ccff", weight: 1, fillOpacity: 0.6 };
+
+    function railwayStyle(feature) {
+      let color = feature.properties.EXS_DESCRI === "Operational" ? "#228b22" : "#ffa500";
+      return { color: color, weight: 2, opacity: 0.8 };
+    }
+
+    function estadoStyle(feature) {
+      let area = feature.properties.area;
+      let color = area > 15000 ? "#a63603" : area > 10000 ? "#e6550d" : "#fd8d3c";
+      return { fillColor: color, color: "#ffffff", weight: 1, fillOpacity: 0.7 };
+    }
+
+    /***********************************************
+     * 3. Creación de capas GeoJSON
+     ***********************************************/
+    var countryLayer = L.geoJson(austria, { style: countryStyle });
+    var roadsLayer = L.geoJson(aust_roads, { style: roadsStyle });
+    var railwayLayer = L.geoJson(aust_rails, { style: railwayStyle });
+    var waterAreasLayer = L.geoJson(aust_waterareas, { style: waterAreasStyle });
+    var waterLinesLayer = L.geoJson(aust_waterlines, { style: waterLinesStyle });
+    var estadosLayer = L.geoJson(aust_estaFedera, { 
+      style: estadoStyle,
+      onEachFeature: function (feature, layer) {
+        layer.bindPopup("<b>Estado:</b> " + feature.properties.name + "<br><b>Área:</b> " + feature.properties.area.toFixed(2) + " km²");
       }
-    </style>
-    <script type="text/javascript" src="../datos_españa/espana.js"></script>
-    <script
-      type="text/javascript"
-      src="../datos_españa/comunidades.js"
-    ></script>
-    <script type="text/javascript" src="../datos_españa/provincias.js"></script>
-  </head>
-  <body>
-    <header>
-      <h1 style="font-size: 32px; color: #0000ff; text-align: center">
-        IDE Mapa de España
-      </h1>
-      <p style="font-size: 20px; color: #00ffff; text-align: center">
-        Algunas capas desde GeoJson
-      </p>
-    </header>
-    <div id="mapa"></div>
-    <!--Capa en la que va el mapa-->
-    <script>
-      //Comienzo del Script en JavaScript
-      var osmLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
-      //Enlace de OpenStreetMap
-      var osmUrl = "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
-      //Ruta de OpenStreetMap
-      var osmAttrib = "&copy; " + osmLink + " Contributors";
-      //Atribuciones de OpenStreetMap
-      var osmMap = L.tileLayer(osmUrl, { attribution: osmAttrib });
-      //Creo la capa con laruta y las atribuciones indicadas,
-      //asigno la capa a la variable osmMap
-      var mimapa = L.map("mapa", {
-        measureControl: true,
-        maxZoom: 20,
-        center: new L.LatLng(40.6513, -4.6786),
-        zoom: 5,
-      });
-      //Creo el mapa en la capa con id mapa, centrado en las coordenadas de la E.P.S.de Ávila y con zoom 15
-      osmMap.addTo(mimapa); //Añado la capa de OpenStreetMap al mapa
-      var capasbase = {
-        "Mapa OpenStreetMap": osmMap,
-      };
-      //Creo la variable capasbase para guardar los mapas que quiero visualizar de base
-      var estilopais = {
-        fillColor: "#ff0000",
-        opacity: 1,
-        color: "#000000",
-        weight: 1,
-        fillOpacity: 0.8,
-      };
-      var estilocomunidades = {
-        fillColor: "#CC6600",
-        opacity: 1,
-        color: "#000000",
-        weight: 1,
-        fillOpacity: 0.8,
-      };
-      //Creo el estilo para la capa pais
-      capa_pais = L.geoJson(espana, { style: estilopais }).addTo(mimapa);
-      //Añado al mapa la capa del mapa de españa con el estilo indicado;
-      var capasadicionales = {
-        España: capa_pais,
-      }; //Preparo las capas adicionales para cargar en el selector de capas
-      L.control.layers(capasbase, capasadicionales).addTo(mimapa);
-      //Añado al m
-    </script>
-    <!--Fin del Script-->
-  </body>
+    });
+
+    /***********************************************
+     * 4. Control de capas
+     ***********************************************/
+    var baseLayers = { "OpenStreetMap": osmTileLayer };
+
+    var overlayLayers = {
+      "Austria": countryLayer,
+      "Estados Federales": estadosLayer,
+      "Carreteras": roadsLayer,
+      "Ferrocarriles": railwayLayer,
+      "Áreas de Agua": waterAreasLayer,
+      "Líneas de Agua": waterLinesLayer
+    };
+
+    countryLayer.addTo(map);
+    estadosLayer.addTo(map);
+    roadsLayer.addTo(map);
+    railwayLayer.addTo(map);
+    waterAreasLayer.addTo(map);
+    waterLinesLayer.addTo(map);
+
+    L.control.layers(baseLayers, overlayLayers, { collapsed: true }).addTo(map);
+
+    /***********************************************
+     * 5. Control de Dibujo (Leaflet Draw)
+     ***********************************************/
+    var drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+
+    var drawControl = new L.Control.Draw({
+      draw: { marker: true, polyline: true, polygon: true, circle: false, rectangle: false, circlemarker: false },
+      edit: { featureGroup: drawnItems, remove: true }
+    });
+
+    map.addControl(drawControl);
+
+    /***********************************************
+     * 6. Manejo de eventos de dibujo
+     ***********************************************/
+    map.on(L.Draw.Event.CREATED, function (e) {
+      var layer = e.layer;
+      drawnItems.addLayer(layer);
+    });
+
+  </script>
+</body>
 </html>
