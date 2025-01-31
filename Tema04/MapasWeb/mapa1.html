@@ -2,7 +2,8 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <title>Tarea 4 HIG: Austria GIS Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Austria GIS Map - Responsive</title>
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.3/leaflet.css" />
@@ -11,33 +12,54 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
 
   <style>
-    body {
+    /* Estilos globales */
+    html, body {
       margin: 0;
       padding: 0;
       font-family: "Arial", sans-serif;
       background-color: #f9f9f9;
+      height: 100vh; /* Ocupa toda la pantalla */
+      overflow: hidden; /* Evita el scroll vertical */
+      display: flex;
+      flex-direction: column;
     }
+
+    /* Estilos del encabezado */
     header {
       text-align: center;
       background-color: #002366;
       color: #ffffff;
       padding: 1em 0;
+      flex-shrink: 0;
     }
+
     h1 {
       margin: 0;
       font-size: 2em;
       font-weight: bold;
     }
+
     .container {
-      width: 95%;
-      max-width: 1200px;
-      margin: 1em auto;
+      flex-grow: 1;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
     }
+
+    /* Estilos del mapa */
     #map {
       width: 100%;
-      height: 600px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
-      border-radius: 5px;
+      height: calc(100vh - 60px); /* Resta el tamaño del header */
+    }
+
+    /* Ajuste responsivo */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 1.5em;
+      }
+      header {
+        padding: 0.8em 0;
+      }
     }
   </style>
 </head>
@@ -78,7 +100,7 @@
 
     var map = L.map("map", {
       center: [47.621763, 14.594218],
-      zoom: 7,
+      zoom: 8 ,
       layers: [osmTileLayer]
     });
 
@@ -161,7 +183,47 @@
       var layer = e.layer;
       drawnItems.addLayer(layer);
     });
+    var viennaIcon = L.icon({
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/ec/RedDot.svg', // URL de icono
+        iconSize: [30, 30], // Tamaño del icono
+        iconAnchor: [15, 30], // Punto de anclaje del icono
+        popupAnchor: [0, -30] // Posición del popup
+    });
 
+    var viennaMarker = L.marker([48.2082, 16.3738], { icon: viennaIcon })
+        .addTo(map)
+        .bindPopup("<b>Viena, Austria</b><br>Capital de Austria")
+        .openPopup();
+
+    var cities = [
+      { name: "Graz", lat: 47.0707, lon: 15.4395, description: "Segunda ciudad más grande de Austria" },
+      { name: "Linz", lat: 48.3064, lon: 14.2861, description: "Centro industrial y cultural de Austria" },
+      { name: "Salzburgo", lat: 47.8095, lon: 13.0550, description: "Ciudad natal de Mozart" },
+      { name: "Innsbruck", lat: 47.2682, lon: 11.3923, description: "Famosa por sus deportes de invierno" },
+      { name: "Klagenfurt", lat: 46.6249, lon: 14.3050, description: "Capital de Carintia, cerca del lago Wörthersee" },
+      { name: "Villach", lat: 46.6103, lon: 13.8558, description: "Importante ciudad comercial y turística" },
+      { name: "Wels", lat: 48.1662, lon: 14.0331, description: "Ciudad con fuerte actividad económica" }
+    ];
+    var svgIcon = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24">
+        <path fill="blue" stroke="black" stroke-width="1" d="M12 2C8.13 2 5 5.13 5 9c0 3.25 3.04 7.77 6.12 11.35.55.64 1.21.65 1.76 0C15.96 16.77 19 12.25 19 9c0-3.87-3.13-7-7-7z"/>
+        <circle cx="12" cy="9" r="3" fill="white" stroke="black" stroke-width="1"/>
+      </svg>
+    `;
+
+    var svgIconEncoded = "data:image/svg+xml;base64," + btoa(svgIcon);
+    var cityIcon = L.icon({
+        iconUrl: svgIconEncoded, // URL del icono
+        iconSize: [30, 30], // Tamaño del icono
+        iconAnchor: [15, 30], // Punto de anclaje del icono
+        popupAnchor: [0, -30] // Posición del popup
+    });
+    // Agregar los marcadores al mapa
+    cities.forEach(city => {
+      L.marker([city.lat, city.lon], { icon: cityIcon })
+        .addTo(map)
+        .bindPopup(`<b>${city.name}</b><br>${city.description}`);
+    });
   </script>
 </body>
 </html>
